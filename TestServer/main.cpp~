@@ -194,7 +194,7 @@ void add_client(TCPsocket sock, std::string name)
         c.name = name;
         c.sock = sock;
         c.x = W % 2; // COME BACK HERE
-        c.y = 100; // COME BACK HERE
+        c.y = H - 70; // COME BACK HERE
         c.active = true;
         
         clients.push_back(c);
@@ -204,7 +204,7 @@ void add_client(TCPsocket sock, std::string name)
         c.name = name;
         c.sock = sock;
         c.x = W % 2; // COME BACK HERE
-        c.y = 400; // COME BACK HERE
+        c.y = 0; // COME BACK HERE
         c.active = true;
         
         clients.push_back(c);
