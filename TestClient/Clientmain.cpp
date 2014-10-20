@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * This is the client side of the Space Shooter project for CISS465
  *****************************************************************************/
@@ -77,6 +76,8 @@ public:
 	int number, status;
     int color[3];
     Rect rect;
+    Rect missile;
+    // std::vector<Rect> missile;
 };
 
 
@@ -94,6 +95,12 @@ std::vector<Player> players;
 SDL_Thread *net_thread = NULL, *local_thread = NULL;
 int player_number = -1;
 
+//============================
+// VECTOR OF PLAYER'S MISSILES
+//============================
+//std::vector<Rect> missile; //..............................................................(1)
+
+           
 
 /******************************************************************************
  * Functions
@@ -267,7 +274,27 @@ int main(int argc, char **argv)
     Image image1("images/galaxian/GalaxianGalaxip.gif");
     Image image2("images/galaxian/GalaxianGalaxip.rotated.gif");
     // Rect rect = image.getRect();
+
+
+    //==================
+    // MISSILE VARIABLES ............................................................(2)
+    //==================
+    bool shoot_missile = false;
+    int missile_x;
+    int missile_y;
+    bool get_player_pos = true;
+/*
+    int num_missiles = 100; // Number of missiles player has
+    int w = 2; // Width of player missile
+    int h = 6; // Height of player missile
     
+    // setting the amount of missles the player gets to fire in a vector
+    for (int i = 0; i < num_missiles; i++)
+    { 
+        Rect l(0, 0, w, h);
+        players[i].missile.push_back(l);     
+    }
+*/
 
 	while(1)
 	{
@@ -295,28 +322,31 @@ int main(int argc, char **argv)
 
 		KeyPressed keypressed = get_keypressed();
 
-		to_server = "";
-        
+        to_server = "";
 	    if (keypressed[LEFTARROW])
         {
 			to_server = "1";
 			send_message(to_server, sock);
 		}
-		else if (keypressed[RIGHTARROW])
+        else if (keypressed[RIGHTARROW])
         {
 			to_server = "2";
 			send_message(to_server, sock);
 		}
+        else if (keypressed[SPACE])
+        {
+            to_server = "3";
+            send_message(to_server, sock);
+            // shoot_missile = true;
+        }
 
-        //========================================
-        // COPY VALUES OF PLAYER CLASS TO OUR RECT
-        //========================================
-        
         
 		surface.fill(BLACK);
         
         for (int i = 0; i < players.size(); i++)
         {
+            missile_x = players[i].x + 15;
+            missile_y = players[i].y - 3;
             if (players[i].status)
             {
                 surface.lock();
@@ -337,6 +367,31 @@ int main(int argc, char **argv)
                 {
                     surface.put_image(image2, players[i].rect);
                 }
+
+                
+                if (shoot_missile == true)
+                {
+                    //surface.put_rect(missile[i].x, missile[i].y -= 10, w, h, 150, 150 , 150);
+                    if (get_player_pos == true)
+                    {
+                        missile_x = players[i].x + 15;
+                        missile_y = players[i].y - 3;
+                        get_player_pos = false;
+                    }
+                    
+                    surface.put_rect(missile_x, missile_y -= 5,
+                                     2, 6,
+                                     players[i].color[0],
+                                     players[i].color[1],
+                                     players[i].color[2]);
+
+                    if (missile_y < 0)
+                    {
+                        shoot_missile = false;
+                        get_player_pos = true;
+                    }
+                }
+                
                 
                 surface.unlock();
             }
@@ -345,7 +400,7 @@ int main(int argc, char **argv)
 		surface.flip();
 
 
-		delay(1);
+		delay(30);
 	}
 
 	SDLNet_Quit();

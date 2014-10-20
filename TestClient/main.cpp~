@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * This is the client side of the Space Shooter project for CISS465
  *****************************************************************************/
@@ -40,39 +39,10 @@
 /******************************************************************************
  * Class definitions.
  *****************************************************************************/
-class Player
+class Player 
 {
 public:
-    Player(int x1, int y1, int num = -1, int state = 0)
-        :x(x1), y(y1), size(10), number(num), status(state)
-    {
-        switch(num)
-        {
-            case 0:
-                color[0] = 255;
-                color[1] = 0;
-                color[2] = 0;
-                break;
-
-                
-            default:
-                color[0] = 255 / 10;
-                color[1] = 255 / 5;
-                color[2] = 255 / 3;
-        }
-	}
-    
-    int x, y, size;
-	int number, status;
-    int color[3];
-};
-
-                
-
-class Player1 // Dr. Liow's player class
-{
-public:
-	Player1(int x1, int y1, int num = -1, int state = 0)
+	Player(int x1, int y1, int num = -1, int state = 0)
 		: x(x1), y(y1), size(10), number(num), status(state)
 	{
         switch(num)
@@ -82,67 +52,19 @@ public:
                color[1] = 0;
                color[2] = 0;
                break;
-/*
+
             case 1:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
                 color[0] = 0;
                 color[1] = 255;
                 color[2] = 0;
                 break;
 
             case 2:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
                 color[0] = 0;
                 color[1] = 0;
                 color[2] = 255;
                 break;
                 
-            case 3:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
-                color[0] = 255;
-                color[1] = 255;
-                color[2] = 0;
-                break;
-                
-            case 4:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
-                color[0] = 255;
-                color[1] = 0;
-                color[2] = 255;
-                break;
-
-            case 5:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
-                color[0] = 0;
-                color[1] = 255;
-                color[2] = 255;
-                break;
-
-            case 6:
-                Image image("images/galaxian/GalaxianGalaxip.gif");	// loads ships image
-                ship = spaceship_image.getRect();
-                ship.x = x;
-                ship.y = x;
-                color[0] = 255;
-                color[1] = 255;
-                color[2] = 255;
-                break;
-*/
             default:
                 color[0] = 255 / 10;
                 color[1] = 255 / 5;
@@ -153,6 +75,8 @@ public:
     int x, y, size;
 	int number, status;
     int color[3];
+    Rect rect;
+    // std::vector<Rect> missile;
 };
 
 
@@ -166,9 +90,16 @@ const int MAXLEN = 1024;
  * Global Variables.
  *****************************************************************************/
 std::vector<Player> players;
+// std::vector<Player> rect;
 SDL_Thread *net_thread = NULL, *local_thread = NULL;
 int player_number = -1;
 
+//============================
+// VECTOR OF PLAYER'S MISSILES
+//============================
+//std::vector<Rect> missile; //..............................................................(1)
+
+           
 
 /******************************************************************************
  * Functions
@@ -339,9 +270,29 @@ int main(int argc, char **argv)
 	Surface surface(W, H);
 	Event event;
 
-    Image spaceship_image("images/galaxian/GalaxianGalaxip.gif");
-    Rect ship = spaceship_image.getRect();
+    Image image1("images/galaxian/GalaxianGalaxip.gif");
+    Image image2("images/galaxian/GalaxianGalaxip.rotated.gif");
+    // Rect rect = image.getRect();
+
+
+    //==================
+    // MISSILE VARIABLES ............................................................(2)
+    //==================
+    bool shoot_missile = false;
+    int missile_x;
+    int missile_y;
+/*
+    int num_missiles = 100; // Number of missiles player has
+    int w = 2; // Width of player missile
+    int h = 6; // Height of player missile
     
+    // setting the amount of missles the player gets to fire in a vector
+    for (int i = 0; i < num_missiles; i++)
+    { 
+        Rect l(0, 0, w, h);
+        players[i].missile.push_back(l);     
+    }
+*/
 
 	while(1)
 	{
@@ -381,19 +332,54 @@ int main(int argc, char **argv)
 			to_server = "2";
 			send_message(to_server, sock);
 		}
+
+        if (keypressed[SPACE])
+        {
+            to_server = "3";
+            send_message(to_server, sock);
+            shoot_missile = true;
+        }
         
 		surface.fill(BLACK);
         
         for (int i = 0; i < players.size(); i++)
         {
+            missile_x = players[i].x + 15;
+            missile_y = players[i].y - 3;
             if (players[i].status)
             {
                 surface.lock();
+                /*
                 surface.put_rect(players[i].x, players[i].y,
                                  players[i].size, players[i].size,
                                  players[i].color[0],
                                  players[i].color[1],
                                  players[i].color[2]);
+                */
+                players[i].rect.x = players[i].x;
+                players[i].rect.y = players[i].y;
+                if (i == 0)
+                {
+                    surface.put_image(image1, players[i].rect);
+                }
+                if (i == 1)
+                {
+                    surface.put_image(image2, players[i].rect);
+                }
+
+                if (shoot_missile == true)
+                {
+                    /*
+                    missile_x = players[i].x + 15;
+                    missile_y = players[i].y - 3;
+                    */
+                    surface.put_rect(missile_x, missile_y -= 3,
+                                     2, 6,
+                                     players[i].color[0],
+                                     players[i].color[1],
+                                     players[i].color[2]);
+                }
+                
                 
                 surface.unlock();
             }
@@ -410,3 +396,68 @@ int main(int argc, char **argv)
 
 	return(0);
 }
+
+
+
+
+//==========================================
+// SCRATCH WORK ZONE...
+// please do not touch except when necessary
+//==========================================
+
+//================================================================
+// Small Player Class written by Rotshak for testing purposes only 
+/*
+class Player
+{
+public:
+    Player(int x1, int y1, int num = -1, int state = 0)
+        :x(x1), y(y1), size(10), number(num), status(state)
+    {
+        switch(num)
+        {
+            case 0:
+                color[0] = 255;
+                color[1] = 0;
+                color[2] = 0;
+                break;
+
+            default:
+                color[0] = 255 / 10;
+                color[1] = 255 / 5;
+                color[2] = 255 / 3;
+        }
+	}
+    
+    int x, y, size;
+	int number, status;
+    int color[3];
+    Rect rect;
+};
+*/
+
+ // CASES 3 to 6...we only need two since its a two player game             
+ /*            case 3:
+                color[0] = 255;
+                color[1] = 255;
+                color[2] = 0;
+                break;
+                
+            case 4:
+                color[0] = 255;
+                color[1] = 0;
+                color[2] = 255;
+                break;
+
+            case 5:
+                color[0] = 0;
+                color[1] = 255;
+                color[2] = 255;
+                break;
+
+            case 6:
+                color[0] = 255;
+                color[1] = 255;
+                color[2] = 255;
+                break;
+ */

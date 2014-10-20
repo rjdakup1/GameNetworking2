@@ -50,6 +50,7 @@ public:
 	std::string name;
 	int x, y;
     bool active;
+    // std::vector <Rect> client_missile;
 };
 
 
@@ -194,7 +195,7 @@ void add_client(TCPsocket sock, std::string name)
         c.name = name;
         c.sock = sock;
         c.x = W % 2; // COME BACK HERE
-        c.y = H - 200; // COME BACK HERE
+        c.y = H - 70; // COME BACK HERE
         c.active = true;
         
         clients.push_back(c);
@@ -327,6 +328,10 @@ void update_position(int i, std::string message)
             clients[i].x += 3;
         else
             clients[i].x = W - 32;
+
+    if (message == "3") // To shoot player missile.......................................(3)
+    {}
+        
 }
 
 
