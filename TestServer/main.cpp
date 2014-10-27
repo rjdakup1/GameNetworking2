@@ -50,7 +50,6 @@ public:
 	std::string name;
 	int x, y;
     bool active;
-    // std::vector <Rect> client_missile;
 };
 
 
@@ -313,59 +312,21 @@ std::string generate_string_for_clients()
     return ret.str();
 }
 
-void shoot_missile(int i)
-{
-    std::vector<Rect> missile;
-    int num_missiles = 100;
-    int w = 2;
-    int h = 6;
-   
-    // set the amount of missles the player gets to fire in a vector
-    for (int j = 0; j < num_missiles; j++)
-    { 
-        Rect l(0, 0, w, h);
-        missile.push_back(l);     
-    }
-
-    missile[i].x = clients[i].x + 15;
-    missile[i].y = clients[i].y + 2;
-
-    while (missile[i].y > 0)
-    {
-        // missile[i].y -= 3;
-        for (int k = 0; k < missile.size(); ++k)
-        {
-            //surface.put_rect(missile[i].x, missile[i].y -= 10, w, h, 150, 150 , 150);
-            if(missile[i].y < 0)
-            {
-                missile[i].y == 0;
-                break;
-            }
-        }
-    }    
-}
-
 
 // Update the position of a client
 void update_position(int i, std::string message)
 {
     if (message == "1") // To move client spaceship to the left
-    {
         if (clients[i].x > 0)
-            clients[i].x -= 6;
-    }
+            clients[i].x -= 3;
+        else
+            clients[i].x = 0;
 
-    if (message == "2") // To move client spaceship to the right
-    {
+    else if (message == "2") // To move client spaceship to the right
         if (clients[i].x < W - 32)
-            clients[i].x += 6;
-    }
-
-    if (message == "3") // To shoot player missile.......................................(3)
-    {
-        std::cout << "shoot" << '\n';
-        // shoot_missile(i);
-    }
+            clients[i].x += 3;
+        else
+            clients[i].x = W - 32;
 }
 
 

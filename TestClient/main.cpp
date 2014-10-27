@@ -1,3 +1,4 @@
+
 /******************************************************************************
  * This is the client side of the Space Shooter project for CISS465
  *****************************************************************************/
@@ -8,6 +9,7 @@
  *****************************************************************************/
 
 // Standard includes
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -19,13 +21,14 @@
 #include <vector>
 
 // SDL wrapper from Dr. Liow
+
 #include "Includes.h"
 #include "Event.h"
 #include "compgeom.h"
 #include "Constants.h"
 #include "Surface.h"
 
-//#include "MyGameObjects.h"
+
 
 // SDL net
 #include "SDL_net.h"
@@ -71,13 +74,11 @@ public:
                 color[2] = 255 / 3;
         }
 	}
-    
+        
     int x, y, size;
 	int number, status;
     int color[3];
     Rect rect;
-    Rect missile;
-    // std::vector<Rect> missile;
 };
 
 
@@ -91,16 +92,12 @@ const int MAXLEN = 1024;
  * Global Variables.
  *****************************************************************************/
 std::vector<Player> players;
+std::vector <Rect> alien;
+
 // std::vector<Player> rect;
 SDL_Thread *net_thread = NULL, *local_thread = NULL;
 int player_number = -1;
 
-//============================
-// VECTOR OF PLAYER'S MISSILES
-//============================
-//std::vector<Rect> missile; //..............................................................(1)
-
-           
 
 /******************************************************************************
  * Functions
@@ -155,6 +152,13 @@ void parse_player_data(std::string message)
             Player player(_x, _y, i, _status);
             players.push_back(player);
         }
+    }
+    for(int i = 0; i < 15; ++i)
+    {
+        if(i < alien.size())
+        {
+            message_stream >> alien[i].x >> alien[i].y;
+        }
 	}		
 }
 
@@ -191,6 +195,7 @@ int main(int argc, char **argv)
 	std::string to_server;
 	std::string from_server;
 
+   
 
 	/* check our commandline */
 	if(argc < 4)
@@ -273,29 +278,28 @@ int main(int argc, char **argv)
 
     Image image1("images/galaxian/GalaxianGalaxip.gif");
     Image image2("images/galaxian/GalaxianGalaxip.rotated.gif");
-    // Rect rect = image.getRect();
+   
+    Image red("images/galaxian/GalaxianRedAlien.gif");	// loads alien image
+    Image purple("images/galaxian/GalaxianPurpleAlien.gif"); // loads alien image	
+    Image blue("images/galaxian/GalaxianAquaAlien.gif");	// loads alien image
+    Image flagship("images/galaxian/GalaxianFlagship.gif");	// loads alien image
 
-
-    //==================
-    // MISSILE VARIABLES ............................................................(2)
-    //==================
-    bool shoot_missile = false;
-    int missile_x;
-    int missile_y;
-    bool get_player_pos = true;
-/*
-    int num_missiles = 100; // Number of missiles player has
-    int w = 2; // Width of player missile
-    int h = 6; // Height of player missile
+    bool move = true;
+  
     
-    // setting the amount of missles the player gets to fire in a vector
-    for (int i = 0; i < num_missiles; i++)
-    { 
-        Rect l(0, 0, w, h);
-        players[i].missile.push_back(l);     
+    for (int i = 0; i < 3; ++ i)
+    {
+        for (int j = 0; j < 5; j++)
+        {
+            Rect a(40 + (i * 30)+ (j * 30), 10 +
+                   (i * 20), 38, 38, i);    
+            alien.push_back(a);
+            
+        }
+        
     }
-*/
-
+    
+    
 	while(1)
 	{
         std::cout << "players.size() is " << players.size() << std::endl;
@@ -322,41 +326,72 @@ int main(int argc, char **argv)
 
 		KeyPressed keypressed = get_keypressed();
 
-        to_server = "";
+		to_server = "";
+        
 	    if (keypressed[LEFTARROW])
         {
 			to_server = "1";
 			send_message(to_server, sock);
 		}
-        else if (keypressed[RIGHTARROW])
+		else if (keypressed[RIGHTARROW])
         {
 			to_server = "2";
 			send_message(to_server, sock);
 		}
-        else if (keypressed[SPACE])
+   
+        
+        if(move) // moves aliens right
         {
-            to_server = "3";
-            send_message(to_server, sock);
-            // shoot_missile = true;
+            
+            for (int j = 0; j < alien.size(); j++)
+            {
+                if (move)
+                {
+                    alien[j].x += 2; 
+                }
+            }
+            for (int i = 0; i < alien.size(); i++)
+            {
+                if(alien[i].x == W - 30)
+                {
+                    move = false;
+                }
+            }
+            
+        }
+            
+        if (!move) // moves aliens left
+        {
+            
+            for (int i = 0; i < alien.size(); i++)
+            {
+                alien[i].x -= 2; 
+            }
+
+            for (int i = 0; i < alien.size(); i++)
+            {
+                if(alien[i].x == 0)
+                {
+                    move = true;
+                }
+            }
+                
+            
         }
 
+        //========================================
+        // COPY VALUES OF PLAYER CLASS TO OUR RECT
+        //========================================
+        
         
 		surface.fill(BLACK);
         
         for (int i = 0; i < players.size(); i++)
         {
-            missile_x = players[i].x + 15;
-            missile_y = players[i].y - 3;
             if (players[i].status)
             {
                 surface.lock();
-                /*
-                surface.put_rect(players[i].x, players[i].y,
-                                 players[i].size, players[i].size,
-                                 players[i].color[0],
-                                 players[i].color[1],
-                                 players[i].color[2]);
-                */
+              
                 players[i].rect.x = players[i].x;
                 players[i].rect.y = players[i].y;
                 if (i == 0)
@@ -367,45 +402,48 @@ int main(int argc, char **argv)
                 {
                     surface.put_image(image2, players[i].rect);
                 }
-
-                
-                if (shoot_missile == true)
-                {
-                    //surface.put_rect(missile[i].x, missile[i].y -= 10, w, h, 150, 150 , 150);
-                    if (get_player_pos == true)
-                    {
-                        missile_x = players[i].x + 15;
-                        missile_y = players[i].y - 3;
-                        get_player_pos = false;
-                    }
-                    
-                    surface.put_rect(missile_x, missile_y -= 5,
-                                     2, 6,
-                                     players[i].color[0],
-                                     players[i].color[1],
-                                     players[i].color[2]);
-
-                    if (missile_y < 0)
-                    {
-                        shoot_missile = false;
-                        get_player_pos = true;
-                    }
-                }
-                
                 
                 surface.unlock();
             }
         }
+        for (int i = 0; i < alien.size(); ++i)
+        {
+            surface.lock();
+            
+            if(alien[i].color < 1) 
+            {
+                surface.put_image(flagship, alien[i]);
+            }
+            
+            if(alien[i].color >= 1 && alien[i].color < 2) 
+            {
+                surface.put_image(red, alien[i]);
+            }
+            
+            if(alien[i].color >= 2 && alien[i].color < 3) 
+            {
+                surface.put_image(purple, alien[i]);
+            }
+            
+            if(alien[i].color >= 3) 
+            {
+                surface.put_image(blue, alien[i]);
+            }
+            
+            surface.unlock();
+            
+        }
+        
 
 		surface.flip();
+        
 
-
-		delay(30);
+		delay(1);
 	}
 
 	SDLNet_Quit();
 	SDL_Quit();
-
+    
 	return(0);
 }
 
